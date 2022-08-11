@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import numpy as np
-from migrave_data.policy_learning.RL import MDP, Policy, Learning, Representation
+from policy_learning.RL import MDP, Policy, Learning, Representation
 import random
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure

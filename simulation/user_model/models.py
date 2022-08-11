@@ -3,7 +3,6 @@
 from keras.models import Sequential
 from keras.layers.core import Dense
 
-
 def PerformanceNN():
     model = Sequential()
     model.add(Dense(20, input_dim=5, activation='linear'))

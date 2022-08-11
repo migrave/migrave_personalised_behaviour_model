@@ -10,9 +10,9 @@ from sklearn.gaussian_process.kernels import ConstantKernel, RationalQuadratic, 
 from sklearn.svm import SVR
 from sklearn import metrics
 
-from migrave_data.simulation.user_model.simulation_utils import normalize_with_moments, get_moments, grid_search
-from migrave_data.simulation.user_model.simulation import Simulation
-from migrave_data.simulation.user_model.models import PerformanceNN
+from simulation.user_model.simulation_utils import normalize_with_moments, get_moments, grid_search
+from simulation.user_model.simulation import Simulation
+from simulation.user_model.models import PerformanceNN
 import json
 
 class PerformanceSimulation(Simulation):
@@ -39,7 +39,7 @@ class PerformanceSimulation(Simulation):
                                 "model": model,
                                 "cluster": cluster})
             if model_name == 'nn':
-                model.save('migrave_data/simulation/output/model/user' + str(ii) + '_performance.h5', 'wb')
+                model.save('simulation/output/model/user' + str(ii) + '_performance.h5', 'wb')
             print(f"Trained cluster no {ii}")
 
     def eval(self, if_save=True):
@@ -236,14 +236,14 @@ class PerformanceSimulation(Simulation):
         plt.xlabel("State id")
         plt.ylabel("Probability of success")
         plt.title(f"Performance plot for user cluster {id}")
-        plt.savefig(f"migrave_data/simulation/output/graphics/performance_c{id}.pdf")
+        plt.savefig(f"simulation/output/graphics/performance_c{id}.pdf")
         plt.close()
 
         if if_save:
-            with open(f"migrave_data/simulation/output/model/user{id}_performance.json", "w") as model_json:
+            with open(f"simulation/output/model/user{id}_performance.json", "w") as model_json:
                 json.dump(model_dict, model_json)
-            with open(f"migrave_data/simulation/output/model/user{id}_performance_training.json", "w") as model_json:
+            with open(f"simulation/output/model/user{id}_performance_training.json", "w") as model_json:
                 json.dump(training_dict, model_json)
             if model_name == "gp":
-                with open(f"migrave_data/simulation/output/model/user{id}_performance_std.json", "w") as model_json:
+                with open(f"simulation/output/model/user{id}_performance_std.json", "w") as model_json:
                     json.dump(model_dict_std, model_json)

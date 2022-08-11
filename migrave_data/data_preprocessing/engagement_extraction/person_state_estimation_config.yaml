@@ -1,0 +1,4 @@
+engagement:
+  model_file: migrave_engagement_model_xgboost.joblib
+affective_state:
+  model_file: affective_state.joblib

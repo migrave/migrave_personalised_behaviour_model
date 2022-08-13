@@ -25,7 +25,7 @@ available_models = ["nn", "gp", "rf", "svm", "ab"]
 performance_model_name = available_models[1]
 feedback_model_name = available_models[1]
 
-data = pd.read_csv('simulation/data/final_clustered.csv', delimiter=',')
+data = pd.read_csv('user_model/data/final_clustered.csv', delimiter=',')
 C = data[['cluster', 'engagement', 'length', 'robot_feedback', 'previous_score', 'current_score', 'current_result',
           'action']]
 

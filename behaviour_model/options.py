@@ -22,10 +22,11 @@ import sys, getopt, os
 from datetime import datetime
 import numpy as np
 
+ROOT_PATH = "behaviour_model"
 def get_best_policy(table_name, epochs, runs_num):
     final_return_avgs = \
-        np.array([np.loadtxt(f"results/{table_name}/runs/{i}/return", dtype=float)[-epochs:].mean()
-                  for i in range(runs_num)])
+        np.array([np.loadtxt(os.path.join(ROOT_PATH, f"results/{table_name}/runs/{i}/return"),
+                             dtype=float)[-epochs:].mean() for i in range(runs_num)])
     id_max = np.argmax(final_return_avgs)
     return id_max
 
@@ -48,7 +49,7 @@ def GetOptions(argv):
     table_name = f"u{user}_m{update_mode}_policy-softmax_rewardfun-{reward_function}_pretrained-False"
     # Selection of the policy with the highest average return for the
     id_max = get_best_policy(table_name, epochs, runs_num)
-    guidance_policy = f"results/{table_name}/runs/{id_max}/q_table" #if there is learning from guidance
+    guidance_policy = os.path.join(ROOT_PATH, f"results/{table_name}/runs/{id_max}/q_table") #if there is learning from guidance
     p_guidance_mistakes = 0.2 #0.1 #0.2
 
     exploration = 300
@@ -64,7 +65,7 @@ def GetOptions(argv):
     # table_name = f"u{user}_m{update_mode}_guidance_error-0.0_pretrained-False" # for guidance
     # Selection of the policy with the highest average return for the
     #id_max = get_best_policy(table_name, epochs, runs_num)
-    Table = "" #f"results/{table_name}/runs/{id_max}/q_table"
+    Table = "" #os.path.join(ROOT_PATH, f"results/{table_name}/runs/{id_max}/q_table")
 
     if guidance_policy:
         name += f"_u{user}_m{update_mode}_guidance_error-{p_guidance_mistakes}_rewardfun-{reward_function}_pretrained-{Table.split('/')[-4] if Table else False}"
@@ -73,7 +74,7 @@ def GetOptions(argv):
 
     try:
         opts, args = getopt.getopt(argv, "he:q:p:l:u:n:i:t:a:")
-    # print opts, args
+
     except getopt.GetoptError:
         print('\n' + OKGREEN + 'USAGE:\n')
         print(
@@ -134,6 +135,3 @@ def GetOptions(argv):
     return episodes, epochs, user, Table, name, learning, interactive_type, exploration, \
            lr, gamma, update_mode, beta1, beta2, exploration_policy, guidance_policy, runs_num, \
            p_guidance_mistakes, reward_function
-
-# e, p, u, t, n, l, i = GetOptions(sys.argv[1::])
-# print e, p, u, t, n, l, i

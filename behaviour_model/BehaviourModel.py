@@ -35,10 +35,6 @@ import json
 from behaviour_model.RL import MDP, Policy, Learning, Representation
 from behaviour_model.options import GetOptions
 
-
-ROOT_PATH = "behaviour_model"
-USER_MODEL_PATH = "user_model/output/model"
-
 class Logger:
     def __init__(self, log_path, run):
         self.log_path = log_path
@@ -108,7 +104,7 @@ class Logger:
     def log_supervisor_mistakes(self, message):
         self.mist.write(message)
 
-    def stop():
+    def stop(self):
         self.vv.close()
         self.ss.close()
         self.ms.close()
@@ -122,7 +118,8 @@ class Logger:
 
 class BehaviourModel:
     def __init__(self):
-        pass
+        self.root_path = "behaviour_model"
+        self.user_model_path = "user_model/output/model"
     def load_model(self, path):
         with open(path) as model_json:
             model_dict = json.load(model_json)
@@ -142,28 +139,24 @@ class BehaviourModel:
         length = [3, 5, 7]
         feedback = [0, 1, 2]
         previous = [-3, -2, -1, 0, 1, 2, 3]
-
         combs = (length, feedback, previous)
         states = list(itertools.product(*combs))
-        states.append((0, 0, 0))
+        states.append((0, 0, 0)) # Start state where actions with the feedback can not be applied
 
         l = [1, 2, 3]
         f = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         combs = (l, f, previous)
         normalized_states = list(itertools.product(*combs))
-        normalized_states.append((0, [0, 0, 0], 0))
+        normalized_states.append((0, [0, 0, 0], 0)) # Start state where actions with the feedback can not be applied
 
         actions = [0, 1, 2, 3, 4]
-        actions_oh = [[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]]
-        return states, normalized_states, actions, actions_oh
-
+        return states, normalized_states, actions
 
     def get_engagement(self, state, result, model):
         outcome = 1 if result > 0 else -1
         st = tuple([state[0] / 3.0, state[1][0], state[1][1], state[1][2], state[2] / 3.0, outcome])
         engagement = model[st]
         return engagement
-
 
     def get_next_state(self, state, states, normalized_states, action, previous, model):
         levels = {3: 1, 5: 2, 7: 3}
@@ -197,62 +190,111 @@ class BehaviourModel:
         score = success * levels[length]
         return score, [length, feedback, previous]
 
+    def save_plot(self, data, epochs, run, dir_name, data_name):
+        names_map = {'return': 'Return',
+                     'engagement': 'Engagement',
+                     'mean_v(s)': 'Mean V(s)',
+                     'score': 'User acc points',
+                     'error': 'Error update',
+                     'succes_ratio': 'Success ratio',
+                     'corrections': 'Corrections',
+                     'supervisor_mistakes': 'Mistakes'}
+
+        figure(figsize=(10, 6), dpi=400)
+        tmp = []
+        epoch_data = []
+
+        if data_name != "succes_ratio":
+            for i, t in enumerate(data):
+                tmp.append(t)
+                if i % epochs == 0:
+                    a = np.asarray(tmp)
+                    epoch_data.append(a.mean())
+                    tmp = []
+        else:
+            for i, (maxs, s) in enumerate(data):
+                tmp.append(s / maxs)
+                if i % epochs == 0:
+                    a = np.asarray(tmp)
+                    epoch_data.append(a.mean())
+                    tmp = []
+
+        plt.plot(epoch_data)
+        plt.grid()
+        plt.xlabel("Epochs")
+        plt.ylabel(names_map[data_name])
+        plt.savefig(os.path.join(self.root_path, f"results/{dir_name}/runs/{run}/{data_name}.png"))
+        plt.close()
+
+    def save_qtable(self, Q, dir_name, run):
+        with open(os.path.join(self.root_path, f"results/{dir_name}/runs/{run}/q_table"), 'w') as f:
+            writer = csv.writer(f, delimiter=' ')
+            writer.writerows(Q)
+
+    def save_policy(self, states, exploration_policy,  Q, dir_name, run):
+        with open(os.path.join(self.root_path, f"results/{dir_name}/runs/{run}/policy"), 'w') as pf:
+            for s, q in zip(states, Q):
+                state_index = states.index(tuple(s))
+                pf.write(str(state_index) + ' ' + str(s))
+
+                for i in q:
+                    softm = (np.exp(i / exploration_policy.param) / np.sum(np.exp(q / exploration_policy.param)))
+                    pf.write(' ' + str(softm))
+                pf.write('\n')
+
     def train(self):
         episodes, epochs, user, q_table, name, learn, interactive_type, To, alpha, gamma, \
         update_mode, beta1, beta2, exploration_policy, guidance_policy, runs_num, \
         p_guidance_mistakes, reward_function = GetOptions(sys.argv[1::])
 
-        log_path = os.path.join(ROOT_PATH , f"results/{name}")
+        log_path = os.path.join(self.root_path , f"results/{name}")
 
         if not os.path.exists(log_path):
             os.makedirs(log_path)
             os.makedirs(os.path.join(log_path, "runs"))
 
         for run in range(runs_num):
+            # Logging
             logger = Logger(log_path, run)
             logger.log_parameters(name, episodes, epochs, user, q_table, learn, alpha, gamma,
                                   interactive_type, To, update_mode, exploration_policy, guidance_policy,
                                   p_guidance_mistakes, reward_function, runs_num, beta1, beta2)
 
-            cmodel = self.load_model(os.path.join(USER_MODEL_PATH, f"user{user}_feedback.json"))
-            model = self.load_model(os.path.join(USER_MODEL_PATH, f"user{user}_performance.json"))
+            # Models
+            cmodel = self.load_model(os.path.join(self.user_model_path, f"user{user}_feedback.json"))
+            model = self.load_model(os.path.join(self.user_model_path, f"user{user}_performance.json"))
 
-            # start and terminal states and indices
-            states, normed_states, actions, actions_oh = self.state_action_space()
+            # State space
+            states, normed_states, actions = self.state_action_space()
             A = ['L = 3', 'L = 5', 'L = 7', 'PF', 'NF']
-
             first_length = random.choice([3, 5, 7])
             start_state = (0, 0, 0)
             start_state_index = states.index(tuple(start_state))
-
             m = MDP(start_state, actions)
             m.states = states
 
+            # Qtable
             table = Representation('qtable', [m.actlist, m.states])
             pretrained = False
-
             Q_guidance = np.asarray(table.Q)
+            Q = np.asarray(table.Q)
+
+            # Policies
             if guidance_policy:
                 print('Loading Q-table guidance policy: ' + str(guidance_policy))
-                ins = open(guidance_policy, 'r')
-                Q_guidance = np.array([[float(n) for n in line.split()] for line in ins])
-                ins.close()
-
-            Q = np.asarray(table.Q)
+                with open(guidance_policy, 'r') as ins:
+                    Q_guidance = np.array([[float(n) for n in line.split()] for line in ins])
+                egreedy = Policy(name="exploitation", param=To)
+                guidance_egreedy = Policy(name="guidance", param=To, p_guidance_mistakes=p_guidance_mistakes)
             if q_table:
                 print('Loading Q-table: ' + str(q_table))
                 pretrained = True
-                ins = open(q_table, 'r')
-                Q = np.array([[float(n) for n in line.split()] for line in ins])
-                ins.close()
-            table.Q = Q
-
-            if guidance_policy:
-                egreedy = Policy(name="exploitation", param=To)
-                guidance_egreedy = Policy(name="guidance", param=To, p_guidance_mistakes=p_guidance_mistakes)
-            else:
+                with open(q_table, 'r') as ins:
+                    Q = np.array([[float(n) for n in line.split()] for line in ins])
                 egreedy = Policy(name=exploration_policy, param=To)
 
+            # Initialisation
+            table.Q = Q
             learning = Learning('qlearn', [alpha, gamma])
 
             R = []
@@ -269,6 +311,7 @@ class BehaviourModel:
             first_reward = 1
             score_map = {3: 1, 5: 2, 7: 3}
 
+            # Learning loop
             while (episode < episodes):
                 state_index = start_state_index
                 state = start_state
@@ -343,7 +386,7 @@ class BehaviourModel:
                     #egreedy.Q_next_state = Q[next_state_index][:]
                     #next_action = egreedy.return_action()
 
-                    next_action = 0 #Because we Q-learning is used
+                    next_action = 0 #Because Q-learning is used
 
                     if episode % epochs == 0 or episode == 1:
                         logger.log_episodes(str(iteration) + '... ' + str(state) + ' ' + str(A[action]) +
@@ -418,168 +461,19 @@ class BehaviourModel:
                     logger.log_corrections(str(corrections) + '\n')
                     logger.log_supervisor_mistakes(str(supervisor_mistakes) + '\n')
 
-            print(visits)
+            logger.stop()
 
-            with open(f"results/{name}/runs/{run}/q_table", 'w') as f:
-                writer = csv.writer(f, delimiter=' ')
-                writer.writerows(Q)
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            return_epoch = []
-            for i, t in enumerate(R):
-                tmp.append(t)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    return_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(return_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("Return")
-            plt.savefig(f"results/{name}/runs/{run}/return.png")
-            plt.close()
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            eng_epoch = []
-            for i, t in enumerate(ENG):
-                tmp.append(t)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    eng_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(eng_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("Engagement")
-            plt.savefig(f"results/{name}/runs/{run}/engagement.png")
-            plt.close()
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            v_epoch = []
-            for i, t in enumerate(V):
-                tmp.append(t)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    v_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(v_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("Mean V(s)")
-            plt.savefig(f"results/{name}/runs/{run}/mean_v(s).png")
-            plt.close()
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            score_epoch = []
-            for i, t in enumerate(S):
-                tmp.append(t)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    score_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(score_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("User acc points")
-            plt.savefig(f"results/{name}/runs/{run}/score.png")
-            plt.close()
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            error_epoch = []
-            for i, t in enumerate(ER):
-                tmp.append(t)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    error_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(error_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("Error update")
-            plt.savefig(f"results/{name}/runs/{run}/error.png")
-            plt.close()
-
-            figure(figsize=(10, 6), dpi=400)
-
-            tmp = []
-            score_epoch = []
-            for i, (maxs, s) in enumerate(zip(MS, S)):
-                tmp.append(s / maxs)
-                if i % epochs == 0:
-                    a = np.asarray(tmp)
-                    score_epoch.append(a.mean())
-                    tmp = []
-
-            plt.plot(score_epoch)
-            plt.grid()
-            plt.xlabel("Epochs")
-            plt.ylabel("Success ratio")
-            plt.savefig(f"results/{name}/runs/{run}/succes_ratio.png")
-            plt.close()
+            self.save_plot(data=R, epochs=epochs, run=run, dir_name=name, data_name='return')
+            self.save_plot(data=ENG, epochs=epochs, run=run, dir_name=name, data_name='engagement')
+            self.save_plot(data=V, epochs=epochs, run=run, dir_name=name, data_name='mean_v(s)')
+            self.save_plot(data=S, epochs=epochs, run=run, dir_name=name, data_name='score')
+            self.save_plot(data=ER, epochs=epochs, run=run, dir_name=name, data_name='error')
+            self.save_plot(data=zip(MS, S), epochs=epochs, run=run, dir_name=name, data_name='succes_ratio')
 
             if guidance_policy:
-                figure(figsize=(10, 6), dpi=400)
+                self.save_plot(data=CORRECTIONS, epochs=epochs, run=run, dir_name=name, data_name='corrections')
+                self.save_plot(data=SUPERVISOR_MISTAKES, epochs=epochs, run=run, dir_name=name,
+                               data_name='supervisor_mistakes')
 
-                tmp = []
-                corrections_epoch = []
-                for i, correct in enumerate(CORRECTIONS):
-                    tmp.append(correct)
-                    if i % epochs == 0:
-                        a = np.asarray(tmp)
-                        corrections_epoch.append(a.mean())
-                        tmp = []
-
-                plt.plot(corrections_epoch)
-                plt.grid()
-                plt.xlabel("Epochs")
-                plt.ylabel("Corrections")
-                plt.savefig(f"results/{name}/runs/{run}/corrections.png")
-                plt.close()
-
-                figure(figsize=(10, 6), dpi=400)
-
-                tmp = []
-                mistakes_epoch = []
-                for i, mistake in enumerate(SUPERVISOR_MISTAKES):
-                    tmp.append(mistake)
-                    if i % epochs == 0:
-                        a = np.asarray(tmp)
-                        mistakes_epoch.append(a.mean())
-                        tmp = []
-
-                plt.plot(mistakes_epoch)
-                plt.grid()
-                plt.xlabel("Epochs")
-                plt.ylabel("Mistakes")
-                plt.savefig(f"results/{name}/runs/{run}/supervisor_mistakes.png")
-                plt.close()
-
-            pf = open(f"results/{name}/runs/{run}/policy", 'w')
-            for s, q in zip(states, Q):
-                state_index = states.index(tuple(s))
-                # argmaxQ = np.argmax(Q[state_index][:])
-                # pf.write(str(state_index) + ' ' + str(s) + ' ' + str(argmaxQ) + '\n')
-                pf.write(str(state_index) + ' ' + str(s))
-                print(q)
-                for i in q:
-                    softm = (np.exp(i / egreedy.param) / np.sum(np.exp(q / egreedy.param)))
-                    pf.write(' ' + str(softm))
-                pf.write('\n')
-            pf.close()
-
-            logger.stop()
+            self.save_qtable(Q, name, run)
+            self.save_policy(states, egreedy, Q, name, run)

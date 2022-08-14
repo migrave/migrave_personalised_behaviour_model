@@ -32,7 +32,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-ROOT_PATH = "behaviour_model"
+ROOT_PATH = ".."
 DATA_ROOT = "results"
 USERS = [0, 1]
 PRETRAINED_USERS = USERS[::-1]
@@ -80,22 +80,24 @@ for name in DATA_NAMES:
 
         for key in DATA_DIRECTS:
             data = []
-            data_avg_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_avg"),
+            data_avg_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_avg"),
                                         dtype=float)
-            data_std_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_std"),
+            data_std_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_std"),
                                         dtype=float)
 
-            pre_data_avg_epoch = np.loadtxt(os.path.join(DATA_ROOT, PRETRAINED_DATA_DIRECTS[key], 'merged', f"{name}_avg"),
-                                            dtype=float)
-            pre_data_std_epoch = np.loadtxt(os.path.join(DATA_ROOT, PRETRAINED_DATA_DIRECTS[key], 'merged', f"{name}_std"),
-                                            dtype=float)
+            pre_data_avg_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, PRETRAINED_DATA_DIRECTS[key], 'merged',
+                                                         f"{name}_avg"), dtype=float)
+            pre_data_std_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, PRETRAINED_DATA_DIRECTS[key], 'merged',
+                                                         f"{name}_std"), dtype=float)
 
             ax.plot(data_avg_epoch, label="cold start", color='red')
             ax.plot(pre_data_avg_epoch, label=f"pretrained on user cluster {pre_user+1}", color='blue')
 
             if name == 'ratio':
-                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch + data_std_epoch)])
-                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch - data_std_epoch)])
+                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch +
+                                                                                        data_std_epoch)])
+                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch -
+                                                                                          data_std_epoch)])
 
                 up_shift_pre_ratio = np.array(
                     [value if value <= 1 else 1 for value in list(pre_data_avg_epoch + pre_data_std_epoch)])
@@ -119,13 +121,6 @@ for name in DATA_NAMES:
                              color="tab:blue",
                              alpha=0.2)
 
-        #plt.grid()
-        #plt.legend()
-        #plt.title(AXIS_LABELS[name]+f" of user {USER}, \n policy update based on {LEGEND[key]}")
-        #plt.xlabel("Epochs")
-        #plt.ylabel(AXIS_LABELS[name])
-        #plt.savefig(os.path.join(OUTPUT_DIR, name+f"_user-{user}_update-{LEGEND[key].replace(' ', '_')}" + ".pdf"))
-
         episodes = data_avg_epoch.shape[0]
         ax.grid()
         ax.set_title(f"User cluster {user + 1}")
@@ -144,5 +139,5 @@ for name in DATA_NAMES:
     fig.supxlabel("Epochs")
     fig.supylabel(AXIS_LABELS[name])
 
-    plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"pretrain_comparison_{name}.pdf"),
+    plt.savefig(os.path.join(OUTPUT_DIR, f"pretrain_comparison_{name}.pdf"),
                 bbox_inches='tight')

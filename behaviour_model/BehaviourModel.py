@@ -32,7 +32,7 @@ import random
 from datetime import datetime
 import json
 
-from behaviour_model.RL import MDP, Policy, Learning, Representation
+from behaviour_model.rl_utils import MDP, Policy, Learning, Representation
 from behaviour_model.options import GetOptions
 
 class Logger:

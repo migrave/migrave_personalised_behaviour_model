@@ -34,7 +34,7 @@ matplotlib.rcParams.update({
 })
 
 USERS = [0, 1]
-ROOT_PATH = "behaviour_model"
+ROOT_PATH = ".."
 DATA_ROOT = "results"
 OUTPUT_DIR = "update_comparison"
 PRETRAINED_USER = 0
@@ -68,14 +68,18 @@ for name in DATA_NAMES:
 
         for key in DATA_DIRECTS:
             data = []
-            data_avg_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_avg"), dtype=float)
-            data_std_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_std"), dtype=float)
+            data_avg_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged',
+                                                     f"{name}_avg"), dtype=float)
+            data_std_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged',
+                                                     f"{name}_std"), dtype=float)
 
             ax.plot(data_avg_epoch, label=LEGEND[key], color=COLOR[key])
 
             if name == 'ratio':
-                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch + data_std_epoch)])
-                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch - data_std_epoch)])
+                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch +
+                                                                                        data_std_epoch)])
+                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch -
+                                                                                          data_std_epoch)])
 
                 ax.fill_between(np.array(range(data_avg_epoch.shape[0])),
                                  y1=down_shift_ratio,
@@ -107,5 +111,5 @@ for name in DATA_NAMES:
     fig.supylabel(AXIS_LABELS[name])
     plt.legend()
 
-    plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"update_comparison_{name}.pdf"),
+    plt.savefig(os.path.join(OUTPUT_DIR, f"update_comparison_{name}.pdf"),
                 bbox_inches='tight')

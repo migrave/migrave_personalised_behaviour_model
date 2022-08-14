@@ -33,7 +33,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-ROOT_PATH = "behaviour_model"
+ROOT_PATH = ".."
 reward_function = "double" #"normal", "double", "square"
 OUTPUT_DIR = "policy_visualization"
 DATA_DIRECTS = {0: {0: f"u0_m0_policy-softmax_rewardfun-{reward_function}_pretrained-False",
@@ -67,7 +67,7 @@ if __name__ == "__main__":
             table_name = DATA_DIRECTS[user_id][id]
             id_max = get_best_policy(table_name, ROOT_PATH, num_epochs_to_select_policy, runs_num)
 
-            policy = f"results/{table_name}/runs/{id_max}/q_table"  # if there is learning from guidance
+            policy = os.path.join(ROOT_PATH, f"results/{table_name}/runs/{id_max}/q_table")  # if there is learning from guidance
             print(policy)
             with open(policy, 'r') as ins:
                 Q = np.array([[float(n) for n in line.split()] for line in ins])
@@ -92,9 +92,7 @@ if __name__ == "__main__":
             ax.set_xlim(0, len(ticks) - 0.9)
             ax.invert_yaxis()  # labels read top-to-bottom
 
-        # ax.set_title('How fast do you want to go today?')
         fig.supylabel("States")
         fig.supxlabel("Actions")
-        # plt.savefig(os.path.join(OUTPUT_DIR, f"policy_u{user}_m{update_mode}_pretrained-{pretrained_user}_guidance-{guidance}.pdf"),
-        #            bbox_inches='tight')
-        plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"user_{user_id}_rewardfun_{reward_function}.pdf"), bbox_inches='tight')
+
+        plt.savefig(os.path.join(OUTPUT_DIR, f"user_{user_id}_rewardfun_{reward_function}.pdf"), bbox_inches='tight')

@@ -34,13 +34,13 @@ matplotlib.rcParams.update({
 })
 
 
-USERS = [0, 1]
-PRETRAINED_USERS = USERS[::-1]
 reward_function = "square" #"normal", "double", "square"
 
+USERS = [0, 1]
+PRETRAINED_USERS = USERS[::-1]
+ROOT_PATH = ".."
 DATA_ROOT = "results"
 OUTPUT_DIR = "pretrain_comparison"
-
 DATA_NAMES = ["score", "ratio", "engagement"]
 AXIS_LABELS = {"score": "Performance Score",
                "ratio": "Success Ratio",
@@ -71,14 +71,18 @@ for name in DATA_NAMES:
         # Plotting results from different update methods
         for key in DATA_DIRECTS:
             data = []
-            data_avg_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_avg"), dtype=float)
-            data_std_epoch = np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_std"), dtype=float)
+            data_avg_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_avg"),
+                                        dtype=float)
+            data_std_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, DATA_DIRECTS[key], 'merged', f"{name}_std"),
+                                        dtype=float)
 
             ax.plot(data_avg_epoch, label=LEGEND[key], color=COLOR[key])
 
             if name == 'ratio':
-                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch + data_std_epoch)])
-                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch - data_std_epoch)])
+                up_shift_ratio = np.array([value if value <= 1 else 1 for value in list(data_avg_epoch +
+                                                                                        data_std_epoch)])
+                down_shift_ratio = np.array([value if value >= 0 else 0 for value in list(data_avg_epoch -
+                                                                                          data_std_epoch)])
 
                 ax.fill_between(np.array(range(data_avg_epoch.shape[0])),
                                  y1=down_shift_ratio,
@@ -92,10 +96,10 @@ for name in DATA_NAMES:
                                  color=f"tab:{COLOR[key]}",
                                  alpha=0.2)
 
-        pre_data_avg_epoch = np.loadtxt(os.path.join(DATA_ROOT, PRETRAINED_DATA_DIRECT, 'merged', f"{name}_avg"),
-                                        dtype=float)
-        pre_data_std_epoch = np.loadtxt(os.path.join(DATA_ROOT, PRETRAINED_DATA_DIRECT, 'merged', f"{name}_std"),
-                                        dtype=float)
+        pre_data_avg_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, PRETRAINED_DATA_DIRECT, 'merged',
+                                                     f"{name}_avg"), dtype=float)
+        pre_data_std_epoch = np.loadtxt(os.path.join(ROOT_PATH, DATA_ROOT, PRETRAINED_DATA_DIRECT, 'merged',
+                                                     f"{name}_std"), dtype=float)
 
         ax.plot(pre_data_avg_epoch, label='pretrained', color='blue')
 

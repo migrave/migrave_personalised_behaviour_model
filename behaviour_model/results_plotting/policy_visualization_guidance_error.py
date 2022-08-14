@@ -33,7 +33,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-ROOT_PATH = "behaviour_model"
+ROOT_PATH = ".."
 reward_function = "square"
 OUTPUT_DIR = "policy_visualization_guidance_error"
 DATA_DIRECTS = {0: {0: f"u0_m1_policy-softmax_rewardfun-{reward_function}_pretrained-False",
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         for id, ax in zip(DATA_DIRECTS[user_id], axes):
             table_name = DATA_DIRECTS[user_id][id]
             id_max = get_best_policy(table_name, ROOT_PATH, num_epochs_to_select_policy, runs_num)
-            policy = f"results/{table_name}/runs/{id_max}/q_table"  # if there is learning from guidance
+            policy = os.path.join(ROOT_PATH, f"results/{table_name}/runs/{id_max}/q_table")  # if there is learning from guidance
             print(policy)
 
             with open(policy, 'r') as ins:
@@ -121,4 +121,4 @@ if __name__ == "__main__":
 
         fig.supylabel("States")
         fig.supxlabel("Actions")
-        plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"user_{user_id}_rewardfun-{reward_function}.pdf"), bbox_inches='tight')
+        plt.savefig(os.path.join(OUTPUT_DIR, f"user_{user_id}_rewardfun-{reward_function}.pdf"), bbox_inches='tight')

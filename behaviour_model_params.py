@@ -4,7 +4,8 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model,
-    and is based on: https://github.com/TsiakasK/sequence-learning-dataset
+    and is based on: https://github.com/TsiakasK/sequence-learning-dataset.
+    It contains parameters neccessary for the behaviour model training.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -24,17 +25,17 @@ import numpy as np
 from behaviour_model.utils import get_best_policy
 
 ROOT_PATH = "behaviour_model"
-USER = 0 # User ID, 0 and 1 are available
-PRETRAINED_USER = 1 # ID of the user which was used to train the policy used for policy initialisation
+USER = 0 # Cluster ID, 0 and 1 are available
+PRETRAINED_USER = 1 # ID of the user cluster which was used to train the policy used for policy initialisation
                     # (policy pretraining), 0 and 1 are available
-RUNS_NUMBER = 30
+RUNS_NUMBER = 30 # How many times the training should be run
 UPDATE_MODE = 1 # reward is calculated only with:
                 # update_mode=0 - performance score,
                 # update_mode=1 - performance score + engagement,
                 # update_mode=2 - engagement Q augmentation
 LEARNING = True # if Q-table should be updated
 EXPLORATION_POLICY = "softmax" # Method for choosing actions i.e. exploration policy:
-                                    # "softmax", "egreedy", "exploitation" (no exploration)
+                                # "softmax", "egreedy", "exploitation" (no exploration)
 EPISODES_NUMBER = 40000
 EPOCHS_NUMBER = 100
 RE_FUNCTION = "normal" # Method for calculating the performance score RE:

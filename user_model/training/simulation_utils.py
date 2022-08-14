@@ -4,6 +4,7 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model.
+    It contains commonly used functions for training (and plotting the results) the user models.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by

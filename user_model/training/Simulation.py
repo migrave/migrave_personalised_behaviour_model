@@ -4,6 +4,8 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model.
+    It contains base abstract class with common functionalities for calsses responsible for training performance and
+    engagement user models.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by

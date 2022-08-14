@@ -142,18 +142,3 @@ class Learning:
                 Q_state[action] = Q_state[action] + learning
                 error = reward + self.gamma * Q_next_state[next_action] - Q_state[action]
         return Q_state, error
-
-
-"""
-m = MDP([0,0], [0,1,2,3,4], 1)
-m.states = [[0,0], [0,1], [1,1]]
-print m.actlist, m.states
-q = Representation('qtable', [m.actlist, m.states])
-print q.Q
-softmax = Policy('softmax', 1, [11.2, 2.2, 13.4, 12.3])
-a = softmax.return_action()
-print a
-egreedy = Policy('egreedy', 0, [1.2, 2.2, 13.4, 12.3])
-a = egreedy.return_action()
-print a
-"""

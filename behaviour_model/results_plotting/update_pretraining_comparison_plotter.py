@@ -54,7 +54,7 @@ COLOR = {0: 'red',
          1: 'cyan',
          2: 'green'}
 
-epochs = 100
+epochs = 100 #number of episodes in one epoch
 episodes = 0
 
 for name in DATA_NAMES:

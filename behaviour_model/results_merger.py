@@ -4,6 +4,7 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model.
+    It is used for merging the results from all the training runs.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +41,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-EPOCHS = 100
+EPOCHS = 100 #number of episodes in one epoch
 ROOT_PATH = ""
 DATA_ROOT = "results"
 OUTPUT_DIR = "merged"

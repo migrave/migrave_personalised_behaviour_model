@@ -31,7 +31,7 @@ import itertools
 import random
 from datetime import datetime
 import json
-from behaviour_model.rl_utils import MDP, Policy, Learning, Representation
+from behaviour_model.rl_utils import Policy, Learning, Representation
 
 class Logger:
     def __init__(self, log_path, run):
@@ -59,7 +59,7 @@ class Logger:
         with open(os.path.join(self.run_log_path, "logfile"), 'w') as logfile:
             logfile.write(f"Logfile for: {name} - {datetime.now()} \n\n")
             logfile.write(f"Number of episodes: {episodes} \n")
-            logfile.write(f"Number of epochs: {epochs} \n")
+            logfile.write(f"Number of episodes in one epoch: {epochs} \n")
             logfile.write(f"User ID: {user} \n")
             logfile.write(f"Qtable: {q_table} \n")
             logfile.write(f"If the agent should learn: {learn} \n")
@@ -218,7 +218,7 @@ class BehaviourModel:
         """
         Generate and save a plot
         :param data: data to be plotted
-        :param epochs: numer of training epochs
+        :param epochs: number of episodes in one epoch
         :param run: ID of the training run
         :param dir_name: name of the directory to save the plot
         :param data_name: name of the data to be plotted
@@ -319,11 +319,9 @@ class BehaviourModel:
             first_length = random.choice([3, 5, 7])
             start_state = (0, 0, 0)
             start_state_index = states.index(tuple(start_state))
-            m = MDP(start_state, actions)
-            m.states = states
 
             # Qtable
-            table = Representation('qtable', [m.actlist, m.states])
+            table = Representation('qtable', [actions, states])
             pretrained = False
             Q_guidance = np.asarray(table.Q)
             Q = np.asarray(table.Q)
@@ -473,8 +471,8 @@ class BehaviourModel:
 
                             next_action = 0
 
-                        Q[state_index][:], error = learning.update(state_index, action, next_state_index, next_action,
-                                                                    reward, Q[state_index][:], Q[next_state_index][:], done)
+                        Q[state_index][:], error = learning.update(action, next_action, reward, Q[state_index][:],
+                                                                   Q[next_state_index][:], done)
 
                     ERROR.append(error)
 

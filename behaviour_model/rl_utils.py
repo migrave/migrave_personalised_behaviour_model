@@ -4,7 +4,8 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model,
-    and is based on: https://github.com/TsiakasK/sequence-learning-dataset
+    and is based on: https://github.com/TsiakasK/sequence-learning-dataset.
+    It contans all the classes needed for representing a Reinforcement Learning problem.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -25,32 +26,16 @@ from datetime import datetime
 from behaviour_model.utils import maxs
 
 
-## TODO
-# tabular, Qlearning, Sarsa, eligibility traces, actor critic, policy gradient, Q or V, QNN
-
-class MDP:
-    def __init__(self, init, actlist, terminals=[], gamma=.9):
-        self.init = init
-        self.actlist = actlist
-        self.terminals = terminals
-        if not (0 <= gamma < 1):
-            raise ValueError("An MDP must have 0 <= gamma < 1")
-        self.gamma = gamma
-        self.states = set()
-        self.reward = 0
-
-    def actions(self, state):
-        """Set of actions that can be performed in this state.  By default, a
-        fixed list of actions, except for terminal states. Override this
-        method if you need to specialize by state."""
-        if state in self.terminals:
-            return [None]
-        else:
-            return self.actlist
-
-
 class Policy:
     def __init__(self, name, param, p_guidance_mistakes=None, Q_state=[]):
+        """
+        Class representing an exploration policy.
+        :param name: type of the exploration strategy
+        (guidance, softmax, egreedy or pure exploitation (no exploration))
+        :param param: parameter defining the level of randomness for an exploration
+        :param p_guidance_mistakes: probability of supervisor making a mistake
+        :param Q_state: Q-table entry to choose an action
+        """
         self.name = name
         self.param = param
         self.Q_state = Q_state
@@ -60,6 +45,10 @@ class Policy:
             self.p_guidance_mistakes = p_guidance_mistakes
 
     def return_action(self):
+        """
+        Return new action according to the explroation strategy.
+        :return: Action chosen to perform by an agent
+        """
         if self.name == 'softmax':
             values = self.Q_state
             tau = self.param
@@ -109,25 +98,43 @@ class Policy:
 
 
 class Representation:
-    # qtable, neural network, policy function, function approximation
     def __init__(self, name, params):
+        """
+        Class representing an agents action-selection policy.
+        :param name: type of the policy representation (e.g. qtable)
+        :param params: any policy parameters (e.g. number of the available states and actions in the Q-table)
+        """
         self.name = name
         self.params = params
         if self.name == 'qtable':
             [self.actlist, self.states] = self.params
             self.Q = [[0.0] * len(self.actlist) for x in range(len(self.states))]
 
-
 class Learning:
     # qlearning, sarsa, traces, actor critic, policy gradient
     def __init__(self, name, params):
+        """
+        Class representing a reinforcement learning algorithm.
+        :param name: type of the RL-algorithm (e.g. qlearn, sarsa)
+        :param params: any paramteres needed for RL-algorithm (e.g. learning rate, discount factor)
+        """
         self.name = name
         self.params = params
         if self.name == 'qlearn' or self.name == 'sarsa':
             self.alpha = self.params[0]
             self.gamma = self.params[1]
 
-    def update(self, state, action, next_state, next_action, reward, Q_state, Q_next_state, done):
+    def update(self, action, next_action, reward, Q_state, Q_next_state, done):
+        """
+        Update of a policy of the RL-algorithm
+        :param action: current action to perform
+        :param next_action: future action to perform (in the next state)
+        :param reward: reward for the policy update
+        :param Q_state: Q-table entry for the current state
+        :param Q_next_state: Q-table entry for the future state
+        :param done: flag indicating if the current session (10 sequences) is finished
+        :return: updated Q-table entry, update error
+        """
         if done:
             Q_state[action] = Q_state[action] + self.alpha * (reward - Q_state[action])
             error = reward - Q_state[action]

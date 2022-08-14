@@ -58,7 +58,7 @@ PLOTS_TITLES = {0: "Cold Start",
 
 if __name__ == "__main__":
     runs_num = 30
-    num_epochs_to_select_policy = 100
+    num_epochs_to_select_policy = 100 #number of episodes in one epoch
 
     length = [3, 5, 7]
     feedback = [0, 1, 2]

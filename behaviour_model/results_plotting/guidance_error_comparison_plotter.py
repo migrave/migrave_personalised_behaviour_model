@@ -61,7 +61,7 @@ LEGEND = {0: "cold start",
           2: r'G, $P(err)=0.1$',
           3: r'G, $P(err)=0.2$'}
 
-epochs = 100
+epochs = 100 #number of episodes in one epoch
 
 mode = "square"
 

@@ -23,7 +23,12 @@ import random
 import os
 
 def maxs(seq):
-    # Return list of position of largest element  -- RANDOM between equals
+    """
+    Return the list of position of the largest element, if there are several largest elements,
+    chose randomly between them.
+    :param seq: Sequence to find the maximum value
+    :return: position of the largest element
+    """
     max_indices = []
     max_val = seq[0]
     for i, val in ((i, val) for i, val in enumerate(seq) if val >= max_val):
@@ -35,6 +40,12 @@ def maxs(seq):
     return random.choice(max_indices)
 
 def average_data(data, epochs):
+    """
+    Average the data over the specified number of epochs.
+    :param data: data to average
+    :param epochs: number of episodes in one epoch
+    :return: averaged data
+    """
     runs = []
     for row in data:
         tmp = []
@@ -49,6 +60,14 @@ def average_data(data, epochs):
     return runs
 
 def calculate_limits(down_limit, up_limit, data_avg_epoch, data_std_epoch):
+    """
+    Crop data standard deviation envelope to the predefined limits.
+    :param down_limit: bottom value limit
+    :param up_limit: upper value limit
+    :param data_avg_epoch: data averaged over the epochs
+    :param data_std_epoch: standard deviation of the data averaged over the epochs
+    :return: data with std envelope limited to the bottom and upper limit
+    """
     up_shift = np.array(
         [value if value <= up_limit else up_limit for value in list(data_avg_epoch + data_std_epoch)])
     down_shift = np.array(
@@ -56,6 +75,15 @@ def calculate_limits(down_limit, up_limit, data_avg_epoch, data_std_epoch):
     return down_shift, up_shift
 
 def get_best_policy(table_name, root_path, epochs, runs_num):
+    """
+    Selecting the best policy over the predefined number of training runs.
+    Policy is chosen based on the highest average return value in the last training epoch.
+    :param table_name: name of the directory to look for the policy
+    :param root_path: name of the behaviour model main directory
+    :param epochs: number of episodes in one epoch
+    :param runs_num: number of runs from whihc the pbest policy should be selected
+    :return: id of the best selected policy
+    """
     final_return_avgs = \
         np.array([np.loadtxt(os.path.join(root_path, f"results/{table_name}/runs/{i}/return"),
                              dtype=float)[-epochs:].mean() for i in range(runs_num)])

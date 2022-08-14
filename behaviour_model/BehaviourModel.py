@@ -4,7 +4,9 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model,
-    and is based on: https://github.com/TsiakasK/sequence-learning-dataset
+    and is based on: https://github.com/TsiakasK/sequence-learning-dataset.
+    It contains the BehaviourModel class responsible for training the behaviour model and Logger class used for
+    logging the training results.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -23,15 +25,12 @@ import csv
 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
-
 import numpy as np
 import random
 import itertools
 import random
-
 from datetime import datetime
 import json
-
 from behaviour_model.rl_utils import MDP, Policy, Learning, Representation
 
 class Logger:
@@ -56,6 +55,7 @@ class Logger:
     def log_parameters(self, name, episodes, epochs, user, q_table, learn, alpha, gamma,
                        To, update_mode, exploration_policy, guidance_policy,
                        p_guidance_mistakes, reward_function, runs_num, beta1, beta2):
+
         with open(os.path.join(self.run_log_path, "logfile"), 'w') as logfile:
             logfile.write(f"Logfile for: {name} - {datetime.now()} \n\n")
             logfile.write(f"Number of episodes: {episodes} \n")
@@ -121,7 +121,13 @@ class BehaviourModel:
         self.user_model_path = "user_model/output/model"
         self.engagement_model = self.load_model(engagement_model)
         self.performance_model = self.load_model(performance_model)
+
     def load_model(self, path):
+        """
+        Load the user model
+        :param path: path to the user model
+        :return: loaded model in the form of dictionary
+        """
         with open(path) as model_json:
             model_dict = json.load(model_json)
 
@@ -135,8 +141,10 @@ class BehaviourModel:
         return new_model_dict
 
     def state_action_space(self):
-        # define state-action space
-
+        """
+        Create the state and action space
+        :return: state space, normalised state space, action space
+        """
         length = [3, 5, 7]
         feedback = [0, 1, 2]
         previous = [-3, -2, -1, 0, 1, 2, 3]
@@ -154,12 +162,27 @@ class BehaviourModel:
         return states, normalized_states, actions
 
     def get_engagement(self, state, result):
+        """
+        Get engagement from the user model
+        :param state: state for which the engagement should be obtained
+        :param result: result of solving the sequence by the performance user model
+        :return: engagement score
+        """
         outcome = 1 if result > 0 else -1
         st = tuple([state[0] / 3.0, state[1][0], state[1][1], state[1][2], state[2] / 3.0, outcome])
         engagement = self.engagement_model[st]
         return engagement
 
     def get_next_state(self, state, states, normalized_states, action, previous):
+        """
+        Get next state
+        :param state: state in which the agent currently is
+        :param states: state space
+        :param normalized_states: normalized state space
+        :param action: action performed by the agent
+        :param previous: result obtained by the user in the previous sequence
+        :return: score (result of solving the sequence by the model), new state
+        """
         levels = {3: 1, 5: 2, 7: 3}
         if action == 0:
             feedback = 0
@@ -192,6 +215,15 @@ class BehaviourModel:
         return score, [length, feedback, previous]
 
     def save_plot(self, data, epochs, run, dir_name, data_name):
+        """
+        Generate and save a plot
+        :param data: data to be plotted
+        :param epochs: numer of training epochs
+        :param run: ID of the training run
+        :param dir_name: name of the directory to save the plot
+        :param data_name: name of the data to be plotted
+        :return: None
+        """
         names_map = {'return': 'Return',
                      'engagement': 'Engagement',
                      'mean_v(s)': 'Mean V(s)',
@@ -228,11 +260,27 @@ class BehaviourModel:
         plt.close()
 
     def save_qtable(self, Q, dir_name, run):
+        """
+        Save a Q-table obtained after training
+        :param Q: Q-table
+        :param dir_name: name of the directory to save the plot
+        :param run: ID of the training run
+        :return: None
+        """
         with open(os.path.join(self.root_path, f"results/{dir_name}/runs/{run}/q_table"), 'w') as f:
             writer = csv.writer(f, delimiter=' ')
             writer.writerows(Q)
 
-    def save_policy(self, states, exploration_policy,  Q, dir_name, run):
+    def save_policy(self, states, exploration_policy, Q, dir_name, run):
+        """
+        Save RL policy obtained after training
+        :param states: state space
+        :param exploration_policy: Policy used for exploration (object of type Policy)
+        :param Q: Q-table
+        :param dir_name: name of the directory to save the plot
+        :param run: ID of the training run
+        :return: None
+        """
         with open(os.path.join(self.root_path, f"results/{dir_name}/runs/{run}/policy"), 'w') as pf:
             for s, q in zip(states, Q):
                 state_index = states.index(tuple(s))
@@ -244,6 +292,10 @@ class BehaviourModel:
                 pf.write('\n')
 
     def train(self):
+        """
+        Train the behaviour model
+        :return: None
+        """
         [episodes, epochs, user, q_table, name, learn, To, alpha, gamma, \
         update_mode, beta1, beta2, exploration_policy, guidance_policy, runs_num, \
         p_guidance_mistakes, reward_function] = self.params
@@ -277,13 +329,13 @@ class BehaviourModel:
             Q = np.asarray(table.Q)
 
             # Policies
-            egreedy = Policy(name=exploration_policy, param=To)
+            exp_strategy = Policy(name=exploration_policy, param=To)
             if guidance_policy:
                 print('Loading Q-table guidance policy: ' + str(guidance_policy))
                 with open(guidance_policy, 'r') as ins:
                     Q_guidance = np.array([[float(n) for n in line.split()] for line in ins])
-                egreedy = Policy(name="exploitation", param=To)
-                guidance_egreedy = Policy(name="guidance", param=To, p_guidance_mistakes=p_guidance_mistakes)
+                exp_strategy = Policy(name="exploitation", param=To)
+                guidance_exp_strategy = Policy(name="guidance", param=To, p_guidance_mistakes=p_guidance_mistakes)
             if q_table:
                 print('Loading Q-table: ' + str(q_table))
                 pretrained = True
@@ -333,27 +385,27 @@ class BehaviourModel:
 
                 while (not done):
                     state_index = states.index(tuple(state))
-                    egreedy.Q_state = Q[state_index][:]
+                    exp_strategy.Q_state = Q[state_index][:]
 
                     if guidance_policy:
-                        guidance_egreedy.Q_state = Q_guidance[state_index][:]
+                        guidance_exp_strategy.Q_state = Q_guidance[state_index][:]
 
                     # adaptive exploration per state visit
-                    egreedy.param = To - 5 * float(visits[state_index])
+                    exp_strategy.param = To - 5 * float(visits[state_index])
 
-                    if egreedy.param < 0.5:
-                        egreedy.param = 0.5
+                    if exp_strategy.param < 0.5:
+                        exp_strategy.param = 0.5
 
                     if episode % epochs == 0:
                         visits[state_index] += 1
 
                     # robot feedback (actions 3,4) is not available in the first state
                     if state_index == start_state_index:
-                        egreedy.Q_state = Q[state_index][:3]
+                        exp_strategy.Q_state = Q[state_index][:3]
                         if guidance_policy:
-                            guidance_egreedy.Q_state = Q_guidance[state_index][:3]
+                            guidance_exp_strategy.Q_state = Q_guidance[state_index][:3]
 
-                    action = egreedy.return_action()
+                    action = exp_strategy.return_action()
 
                     result, next_state = self.get_next_state(state, states, normed_states, action, previous_result)
                     next_state_index = states.index(tuple(next_state))
@@ -379,10 +431,6 @@ class BehaviourModel:
 
                     r += (learning.gamma ** (iteration - 1)) * reward
 
-                    #TODO: sarsa
-                    #egreedy.Q_next_state = Q[next_state_index][:]
-                    #next_action = egreedy.return_action()
-
                     next_action = 0 #Because Q-learning is used
 
                     if episode % epochs == 0 or episode == 1:
@@ -398,8 +446,8 @@ class BehaviourModel:
                     error = 0
                     if learn:
                         if guidance_policy:
-                            guidance_action = guidance_egreedy.return_action()
-                            if guidance_egreedy.mistake:
+                            guidance_action = guidance_exp_strategy.return_action()
+                            if guidance_exp_strategy.mistake:
                                 supervisor_mistakes += 1
 
                             is_correction_performed = False
@@ -423,13 +471,7 @@ class BehaviourModel:
                             elif update_mode == 2:
                                 reward = beta2 * engagement
 
-                            #TO-DO: sarsa
-                            #egreedy.Q_next_state = Q[next_state_index][:]
-                            #next_action = egreedy.return_action()
-                            #guidance_egreedy.Q_next_state = Q_guidance[next_state_index][:]
-                            #next_action = guidance_egreedy.return_action()
-
-                            next_action = 0 #Because Q-learning is used
+                            next_action = 0
 
                         Q[state_index][:], error = learning.update(state_index, action, next_state_index, next_action,
                                                                     reward, Q[state_index][:], Q[next_state_index][:], done)
@@ -474,4 +516,4 @@ class BehaviourModel:
                                data_name='supervisor_mistakes')
 
             self.save_qtable(Q, name, run)
-            self.save_policy(states, egreedy, Q, name, run)
+            self.save_policy(states, exp_strategy, Q, name, run)

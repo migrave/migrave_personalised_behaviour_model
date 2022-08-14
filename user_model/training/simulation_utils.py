@@ -63,6 +63,7 @@ def grid_search(estimator, param_grid, x, y):
     :param param_grid: Grid with hyperparameters to try out
     :param x: Input training data
     :param y: Reference values for training the model
+    :return: The best model that could be found
     """
 
     model={}

@@ -24,7 +24,9 @@ from matplotlib.pyplot import figure
 import numpy as np
 from behaviour_model.utils import average_data
 
-epochs = 100
+# Set this variable to the directory with the data to merge
+DATA_DIRECT = "u0_m0_policy-softmax_pretrained-False"
+
 
 font = {'size': 20}
 matplotlib.rc('font', **font)
@@ -36,12 +38,10 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
+EPOCHS = 100
 ROOT_PATH = ""
 DATA_ROOT = "results"
 OUTPUT_DIR = "merged"
-
-# For trained from scratch
-DATA_DIRECT = "u0_m1_guidance_error-0.0_rewardfun-square_pretrained-False"
 
 if not os.path.exists(os.path.join(DATA_ROOT, DATA_DIRECT, OUTPUT_DIR)):
     os.makedirs(os.path.join(DATA_ROOT, DATA_DIRECT, OUTPUT_DIR))
@@ -54,14 +54,7 @@ ENG_raw = []
 ERR_raw = []
 CORR_raw = []
 
-for run in os.listdir(os.path.join(DATA_ROOT, DATA_DIRECT, 'runs')):
-    SC_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/score"), dtype=float))
-    RET_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/return"), dtype=float))
-    MS_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/max_score"), dtype=float))
-    V_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/v_start"), dtype=float))
-    ENG_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/engagement"), dtype=float))
-    ERR_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/error"), dtype=float))
-    CORR_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/corrections"), dtype=float))
+if_corrections = True
 
 names_map = {'return': 'Return',
              'engagement': 'Engagement',
@@ -74,10 +67,31 @@ names_map = {'return': 'Return',
 
 data_list = [SC_raw, RET_raw, V_raw, ENG_raw, ERR_raw, CORR_raw, CORR_raw]
 files_name_list = ['score', 'return', 'v_start', 'engagement', 'error', 'corrections', 'corrections_all']
+runs_num = 0
+
+for run in os.listdir(os.path.join(DATA_ROOT, DATA_DIRECT, 'runs')):
+    runs_num = runs_num + 1
+    SC_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/score"), dtype=float))
+    RET_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/return"), dtype=float))
+    MS_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/max_score"), dtype=float))
+    V_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/v_start"), dtype=float))
+    ENG_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/engagement"), dtype=float))
+    ERR_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/error"), dtype=float))
+    try:
+        CORR_raw.append(np.loadtxt(os.path.join(DATA_ROOT, DATA_DIRECT, f"runs/{run}/corrections"), dtype=float))
+    except FileNotFoundError as err:
+        print(err)
+        if_corrections = False
+
+if not if_corrections:
+    print("Number of supervisor corrections will not be plotted.")
 
 for data_raw, file_name in zip(data_list, files_name_list):
+    if not if_corrections and file_name in ['corrections', 'corrections_all']:
+        continue
+
     if file_name != 'corrections_all':
-        data = average_data(data_raw, epochs)
+        data = average_data(data_raw, EPOCHS)
     else:
         data = data_raw
 
@@ -123,7 +137,7 @@ for data_raw, file_name in zip(data_list, files_name_list):
         plt.close()
 
 
-RATIO = average_data(np.array(SC_raw)/np.array(MS_raw), epochs)
+RATIO = average_data(np.array(SC_raw)/np.array(MS_raw), EPOCHS)
 ratio_mean = np.mean(RATIO, axis=0)
 np.savetxt(f"results/{DATA_DIRECT}/{OUTPUT_DIR}/ratio_avg", ratio_mean, delimiter='\n')
 ratio_std = np.std(RATIO, axis=0)
@@ -144,3 +158,5 @@ plt.xlabel("Epochs")
 plt.ylabel("Success ratio")
 plt.savefig(f"results/{DATA_DIRECT}/{OUTPUT_DIR}/succes_ratio.png")
 plt.close()
+
+print(f"Finished merging data from {runs_num} runs from the directory {DATA_DIRECT}/runs. \n The merged data is saved under {DATA_DIRECT}/merged.")

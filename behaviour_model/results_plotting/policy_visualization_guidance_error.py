@@ -18,11 +18,13 @@
 '''
 
 import os
+import sys
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
 import itertools
+sys.path.append('../..')
 from behaviour_model.utils import get_best_policy
 
 font = {'size': 8}
@@ -46,17 +48,6 @@ DATA_DIRECTS = {0: {0: f"u0_m1_policy-softmax_rewardfun-{reward_function}_pretra
                     2: f"u1_m1_guidance_error-0.0_rewardfun-{reward_function}_pretrained-False",
                     3: f"u1_m1_guidance_error-0.1_rewardfun-{reward_function}_pretrained-False",
                     4: f"u1_m1_guidance_error-0.2_rewardfun-{reward_function}_pretrained-False"}}
-
-# DATA_DIRECTS = {0: {0: f"u0_m1_policy-softmax_pretrained-False",
-#                     1: f"u0_m1_policy-exploitation_pretrained-u1_m1_policy-softmax_pretrained-False",
-#                     2: f"u0_m1_guidance_error-0.0_pretrained-False",
-#                     3: f"u0_m1_guidance_error-0.1_pretrained-False",
-#                     4: f"u0_m1_guidance_error-0.2_pretrained-False"},
-#                 1: {0: f"u1_m1_policy-softmax_pretrained-False",
-#                     1: f"u1_m1_policy-exploitation_pretrained-u0_m1_policy-softmax_pretrained-False",
-#                     2: f"u1_m1_guidance_error-0.0_pretrained-False",
-#                     3: f"u1_m1_guidance_error-0.1_pretrained-False",
-#                     4: f"u1_m1_guidance_error-0.2_pretrained-False"}}
 
 PLOTS_TITLES = {0: "Cold Start",
                 1: "Pretrained",
@@ -86,8 +77,6 @@ if __name__ == "__main__":
             with open(policy, 'r') as ins:
                 Q = np.array([[float(n) for n in line.split()] for line in ins])
 
-            print(Q)
-            print()
             actions = []
             states_ids = []
             ids_to_remove = np.where(~Q.any(axis=1))[0]

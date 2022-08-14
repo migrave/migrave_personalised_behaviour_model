@@ -18,10 +18,12 @@
 '''
 
 import os
+import sys
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
+sys.path.append('../..')
 from behaviour_model.utils import calculate_limits
 
 matplotlib.rc('font', **{'size': 12})

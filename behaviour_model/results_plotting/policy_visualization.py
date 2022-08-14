@@ -18,11 +18,13 @@
 '''
 
 import os
+import sys
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
 import itertools
+sys.path.append('../..')
 from behaviour_model.utils import get_best_policy
 
 font = {'size': 8}

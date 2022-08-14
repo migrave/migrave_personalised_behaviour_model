@@ -40,3 +40,8 @@ Additionally, to plot the combined figures for both user models use the scripts 
   ```
   python3 behaviour_model_training.py
   ```
+  After the successful training, please run the following script in order to generate statistical analysis from all the runs (`behaviour_model` directory):
+  ```
+  python3 results_merger.py
+  ```
+  Extra scripts for plotting the training results can be found in `behaviour_model/results_plotting`.

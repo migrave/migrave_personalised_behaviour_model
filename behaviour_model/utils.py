@@ -34,7 +34,7 @@ def maxs(seq):
             max_indices = [i]
     return random.choice(max_indices)
 
-def average_data(data):
+def average_data(data, epochs):
     runs = []
     for row in data:
         tmp = []

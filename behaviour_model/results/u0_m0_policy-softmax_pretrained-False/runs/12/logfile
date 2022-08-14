@@ -1,0 +1,18 @@
+logfile for: 2022-05-31 14:07:08.770568_u0_m0_policy-softmax_pretrained-False - 2022-05-31 14:13:42.744325 
+
+Episodes: 40000 
+Epochs: 100 
+User: 0 
+Qtable:  
+Learning: 1 
+Learning Rate: 0.05 
+Discount factor: 0.95 
+Interactive 0 
+
+Exploration: 300 
+Update mode: 0 
+Exploration policy: softmax 
+Guidance policy:  
+Numbers of runs: 30 
+beta1: 3 
+beta1: 3 

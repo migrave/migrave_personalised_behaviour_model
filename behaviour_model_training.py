@@ -17,7 +17,14 @@
     along with migrave_personalised_behaviour_model. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import sys
 from behaviour_model.BehaviourModel import BehaviourModel
+from behaviour_model_params import get_params
 
-behaviour_model = BehaviourModel()
+params = get_params()
+user_id = params[2]
+engagement_model_path = f"user_model/output/model/user{user_id}_feedback.json"
+performance_model_path = f"user_model/output/model/user{user_id}_performance.json"
+
+behaviour_model = BehaviourModel(performance_model_path, engagement_model_path, params)
 behaviour_model.train()

@@ -33,7 +33,6 @@ from datetime import datetime
 import json
 
 from behaviour_model.rl_utils import MDP, Policy, Learning, Representation
-from behaviour_model.options import GetOptions
 
 class Logger:
     def __init__(self, log_path, run):
@@ -55,27 +54,26 @@ class Logger:
         self.mist = open(os.path.join(self.run_log_path, "supervisor_mistakes"), 'w')
 
     def log_parameters(self, name, episodes, epochs, user, q_table, learn, alpha, gamma,
-                       interactive_type, To, update_mode, exploration_policy, guidance_policy,
+                       To, update_mode, exploration_policy, guidance_policy,
                        p_guidance_mistakes, reward_function, runs_num, beta1, beta2):
         with open(os.path.join(self.run_log_path, "logfile"), 'w') as logfile:
-            logfile.write(f"logfile for: {name} - {datetime.now()} \n\n")
-            logfile.write(f"Episodes: {episodes} \n")
-            logfile.write(f"Epochs: {epochs} \n")
-            logfile.write(f"User: {user} \n")
+            logfile.write(f"Logfile for: {name} - {datetime.now()} \n\n")
+            logfile.write(f"Number of episodes: {episodes} \n")
+            logfile.write(f"Number of epochs: {epochs} \n")
+            logfile.write(f"User ID: {user} \n")
             logfile.write(f"Qtable: {q_table} \n")
-            logfile.write(f"Learning: {learn} \n")
+            logfile.write(f"If the agent should learn: {learn} \n")
             logfile.write(f"Learning Rate: {alpha} \n")
             logfile.write(f"Discount factor: {gamma} \n")
-            logfile.write(f"Interactive {interactive_type} \n\n")
-            logfile.write(f"Exploration: {To} \n")
-            logfile.write(f"Update mode: {update_mode} \n")
+            logfile.write(f"Initial parameter for exploration: {To} \n")
+            logfile.write(f"Update mode for reward shaping: {update_mode} \n")
             logfile.write(f"Exploration policy: {exploration_policy} \n")
             logfile.write(f"Guidance policy: {guidance_policy} \n")
-            logfile.write(f"Probability of guidance mistakes: {p_guidance_mistakes} \n")
-            logfile.write(f"Reward function: {reward_function} \n")
+            logfile.write(f"Probability of supervisor mistakes: {p_guidance_mistakes} \n")
+            logfile.write(f"RE form (normal, double, square): {reward_function} \n")
             logfile.write(f"Numbers of runs: {runs_num} \n")
-            logfile.write(f"beta1: {beta1} \n")
-            logfile.write(f"beta2: {beta2} \n")
+            logfile.write(f"beta1 (for game performance shaping): {beta1} \n")
+            logfile.write(f"beta2 (for engagement shaping): {beta2} \n")
 
     def log_episodes(self, message):
         self.g.write(message)
@@ -117,9 +115,12 @@ class Logger:
 
 
 class BehaviourModel:
-    def __init__(self):
+    def __init__(self, performance_model, engagement_model, params):
+        self.params = params
         self.root_path = "behaviour_model"
         self.user_model_path = "user_model/output/model"
+        self.engagement_model = self.load_model(engagement_model)
+        self.performance_model = self.load_model(performance_model)
     def load_model(self, path):
         with open(path) as model_json:
             model_dict = json.load(model_json)
@@ -152,13 +153,13 @@ class BehaviourModel:
         actions = [0, 1, 2, 3, 4]
         return states, normalized_states, actions
 
-    def get_engagement(self, state, result, model):
+    def get_engagement(self, state, result):
         outcome = 1 if result > 0 else -1
         st = tuple([state[0] / 3.0, state[1][0], state[1][1], state[1][2], state[2] / 3.0, outcome])
-        engagement = model[st]
+        engagement = self.engagement_model[st]
         return engagement
 
-    def get_next_state(self, state, states, normalized_states, action, previous, model):
+    def get_next_state(self, state, states, normalized_states, action, previous):
         levels = {3: 1, 5: 2, 7: 3}
         if action == 0:
             feedback = 0
@@ -180,7 +181,7 @@ class BehaviourModel:
         normalized_next_state = normalized_states[states.index(tuple(next_state))]
         st = tuple([normalized_next_state[0] / 3.0, normalized_next_state[1][0], normalized_next_state[1][1],
                     normalized_next_state[1][2], normalized_next_state[2] / 3.0])
-        prob = model[st]
+        prob = self.performance_model[st]
 
         if random.random() <= prob:
             success = 1
@@ -243,9 +244,9 @@ class BehaviourModel:
                 pf.write('\n')
 
     def train(self):
-        episodes, epochs, user, q_table, name, learn, interactive_type, To, alpha, gamma, \
+        [episodes, epochs, user, q_table, name, learn, To, alpha, gamma, \
         update_mode, beta1, beta2, exploration_policy, guidance_policy, runs_num, \
-        p_guidance_mistakes, reward_function = GetOptions(sys.argv[1::])
+        p_guidance_mistakes, reward_function] = self.params
 
         log_path = os.path.join(self.root_path , f"results/{name}")
 
@@ -257,12 +258,8 @@ class BehaviourModel:
             # Logging
             logger = Logger(log_path, run)
             logger.log_parameters(name, episodes, epochs, user, q_table, learn, alpha, gamma,
-                                  interactive_type, To, update_mode, exploration_policy, guidance_policy,
+                                  To, update_mode, exploration_policy, guidance_policy,
                                   p_guidance_mistakes, reward_function, runs_num, beta1, beta2)
-
-            # Models
-            cmodel = self.load_model(os.path.join(self.user_model_path, f"user{user}_feedback.json"))
-            model = self.load_model(os.path.join(self.user_model_path, f"user{user}_performance.json"))
 
             # State space
             states, normed_states, actions = self.state_action_space()
@@ -280,6 +277,7 @@ class BehaviourModel:
             Q = np.asarray(table.Q)
 
             # Policies
+            egreedy = Policy(name=exploration_policy, param=To)
             if guidance_policy:
                 print('Loading Q-table guidance policy: ' + str(guidance_policy))
                 with open(guidance_policy, 'r') as ins:
@@ -291,7 +289,6 @@ class BehaviourModel:
                 pretrained = True
                 with open(q_table, 'r') as ins:
                     Q = np.array([[float(n) for n in line.split()] for line in ins])
-                egreedy = Policy(name=exploration_policy, param=To)
 
             # Initialisation
             table.Q = Q
@@ -358,7 +355,7 @@ class BehaviourModel:
 
                     action = egreedy.return_action()
 
-                    result, next_state = self.get_next_state(state, states, normed_states, action, previous_result, model)
+                    result, next_state = self.get_next_state(state, states, normed_states, action, previous_result)
                     next_state_index = states.index(tuple(next_state))
 
                     if reward_function == "normal":
@@ -372,7 +369,7 @@ class BehaviourModel:
 
                     score += result
                     max_score += score_map[next_state[0]]
-                    engagement = self.get_engagement(normed_states[next_state_index], result, cmodel)
+                    engagement = self.get_engagement(normed_states[next_state_index], result)
                     EE.append(engagement)
 
                     if update_mode == 1:
@@ -414,11 +411,12 @@ class BehaviourModel:
                             # Learning From Guidance - Shared Control Approach
                             action = guidance_action
 
-                            result, next_state = self.get_next_state(state, states, normed_states, action, previous_result, model)
+                            result, next_state = self.get_next_state(state, states, normed_states, action,
+                                                                     previous_result)
                             next_state_index = states.index(tuple(next_state))
 
                             reward = result if result > 0.0 else -1.0
-                            engagement = self.get_engagement(normed_states[next_state_index], result, cmodel)
+                            engagement = self.get_engagement(normed_states[next_state_index], result)
 
                             if update_mode == 1:
                                 reward += beta1 * engagement

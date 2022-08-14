@@ -4,6 +4,8 @@
     Copyright 2022 by Michał Stolarz <michal.stolarz@h-brs.de>
 
     This file is part of migrave_personalised_behaviour_model.
+    It is used for plotting the results obtained from the survey filled out by the participants
+    after playing the sequence learning game.
 
     migrave_personalised_behaviour_model is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -26,13 +28,6 @@ import itertools
 
 font = {'size': 8}
 matplotlib.rc('font', **font)
-# matplotlib.use("pgf")
-# matplotlib.rcParams.update({
-#     "pgf.texsystem": "pdflatex",
-#     'font.family': 'serif',
-#     'text.usetex': True,
-#     'pgf.rcfonts': False,
-# })
 
 matplotlib.rcParams.update({
     'font.family': 'serif',
@@ -85,13 +80,6 @@ COLOR = {3: "green",
          5: "blue",
          7: "red"}
 
-FILLING = {3: 'o',
-           5: 'x',
-           7: '+'}
-
-iteration_to_label = 3
-
-
 if __name__ == "__main__":
     fig, axes = plt.subplots(1, len(DATA), sharey=True, figsize=(7, 3), dpi=300)
     width = 0.4
@@ -110,7 +98,6 @@ if __name__ == "__main__":
 
             ax.set_axisbelow(True)
             ax.set_title(label.capitalize())
-            # ax.xaxis.grid()
             ax.grid(alpha=0.3, linewidth=0.8)
             ax.bar(x_pos+x_dist, values, align='center', color=COLOR[diff], width=width, edgecolor="black",
                    linewidth=0.7)
@@ -131,9 +118,5 @@ if __name__ == "__main__":
         if iteration_legend > 1:
             plt.legend(handlers, labels)
 
-        #fig.suptitle(f'Difficulty level {diff}')
         fig.supylabel("Participants")
-        #fig.supxlabel("Actions")
-        # plt.savefig(os.path.join(OUTPUT_DIR, f"policy_u{user}_m{update_mode}_pretrained-{pretrained_user}_guidance-{guidance}.pdf"),
-        #            bbox_inches='tight')
         plt.savefig(os.path.join(OUTPUT_DIR, f"survey_level.pdf"), bbox_inches='tight')

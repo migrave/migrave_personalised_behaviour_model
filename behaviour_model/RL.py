@@ -22,31 +22,11 @@ import numpy as np
 import random
 from datetime import datetime
 
+from behaviour_model.utils import maxs
+
 
 ## TODO
 # tabular, Qlearning, Sarsa, eligibility traces, actor critic, policy gradient, Q or V, QNN
-
-# Return list of position of largest element  -- RANDOM between equals
-def maxs(seq):
-    max_indices = []
-    # if seq:
-    max_val = seq[0]
-    for i, val in ((i, val) for i, val in enumerate(seq) if val >= max_val):
-        if val == max_val:
-            max_indices.append(i)
-        else:
-            max_val = val
-            max_indices = [i]
-    return random.choice(max_indices)
-
-
-def cdf(seq):
-    r = random.random()
-    print(seq, r)
-    for i, s in enumerate(seq):
-        if r <= s:
-            return i
-
 
 class MDP:
     def __init__(self, init, actlist, terminals=[], gamma=.9):

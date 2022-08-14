@@ -22,22 +22,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
+from behaviour_model.utils import average_data
 
 epochs = 100
-
-def average_data(data):
-    runs = []
-    for row in data:
-        tmp = []
-        data_epoch = []
-        for i, value in enumerate(row):
-            tmp.append(value)
-            if i % epochs == 0:
-                a = np.asarray(tmp)
-                data_epoch.append(a.mean())
-                tmp = []
-        runs.append(data_epoch)
-    return runs
 
 font = {'size': 20}
 matplotlib.rc('font', **font)
@@ -49,6 +36,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
+ROOT_PATH = "behaviour_model"
 DATA_ROOT = "results"
 USER = 0
 OUTPUT_DIR = "merged"

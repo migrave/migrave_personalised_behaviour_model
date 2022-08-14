@@ -32,6 +32,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
+ROOT_PATH = "behaviour_model"
 DATA_ROOT = "results"
 USERS = [0, 1]
 PRETRAINED_USERS = USERS[::-1]
@@ -65,18 +66,6 @@ COLOR = {0: 'red',
          2: 'green'}
 
 epochs = 100
-
-
-def average_data(data):
-    tmp = []
-    data_epoch = []
-    for i, value in enumerate(data):
-        tmp.append(value)
-        if i % epochs == 0:
-            a = np.asarray(tmp)
-            data_epoch.append(a.mean())
-            tmp = []
-    return data_epoch
 
 
 for name in DATA_NAMES:
@@ -155,5 +144,5 @@ for name in DATA_NAMES:
     fig.supxlabel("Epochs")
     fig.supylabel(AXIS_LABELS[name])
 
-    plt.savefig(os.path.join(OUTPUT_DIR, f"pretrain_comparison_{name}.pdf"),
+    plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"pretrain_comparison_{name}.pdf"),
                 bbox_inches='tight')

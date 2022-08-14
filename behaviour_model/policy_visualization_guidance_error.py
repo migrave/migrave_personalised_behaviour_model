@@ -23,22 +23,17 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
 import itertools
+from behaviour_model.utils import get_best_policy
 
 font = {'size': 8}
 matplotlib.rc('font', **font)
-# matplotlib.use("pgf")
-# matplotlib.rcParams.update({
-#     "pgf.texsystem": "pdflatex",
-#     'font.family': 'serif',
-#     'text.usetex': True,
-#     'pgf.rcfonts': False,
-# })
 
 matplotlib.rcParams.update({
     'font.family': 'serif',
     'pgf.rcfonts': False,
 })
 
+ROOT_PATH = "behaviour_model"
 reward_function = "square"
 OUTPUT_DIR = "policy_visualization_guidance_error"
 DATA_DIRECTS = {0: {0: f"u0_m1_policy-softmax_rewardfun-{reward_function}_pretrained-False",
@@ -69,13 +64,6 @@ PLOTS_TITLES = {0: "Cold Start",
                 3: "G, $P(err)=0.1$",
                 4: "G, $P(err)=0.2$"}
 
-def get_best_policy(table_name, epochs, runs_num):
-    final_return_avgs = \
-        np.array([np.loadtxt(f"results/{table_name}/runs/{i}/return", dtype=float)[-epochs:].mean()
-                  for i in range(runs_num)])
-    id_max = np.argmax(final_return_avgs)
-    return id_max
-
 
 if __name__ == "__main__":
     runs_num = 30
@@ -91,7 +79,7 @@ if __name__ == "__main__":
 
         for id, ax in zip(DATA_DIRECTS[user_id], axes):
             table_name = DATA_DIRECTS[user_id][id]
-            id_max = get_best_policy(table_name, num_epochs_to_select_policy, runs_num)
+            id_max = get_best_policy(table_name, ROOT_PATH, num_epochs_to_select_policy, runs_num)
             policy = f"results/{table_name}/runs/{id_max}/q_table"  # if there is learning from guidance
             print(policy)
 
@@ -133,4 +121,4 @@ if __name__ == "__main__":
 
         fig.supylabel("States")
         fig.supxlabel("Actions")
-        plt.savefig(os.path.join(OUTPUT_DIR, f"user_{user_id}_rewardfun-{reward_function}.pdf"), bbox_inches='tight')
+        plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"user_{user_id}_rewardfun-{reward_function}.pdf"), bbox_inches='tight')

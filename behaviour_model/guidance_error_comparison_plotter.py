@@ -22,6 +22,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
+from behaviour_model.utils import calculate_limits
 
 matplotlib.rc('font', **{'size': 12})
 matplotlib.use("pgf")
@@ -32,6 +33,7 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
+ROOT_PATH = "behaviour_model"
 DATA_ROOT = "results"
 USERS = [0, 1]
 PRETRAINED_USERS = USERS[::-1]
@@ -60,25 +62,6 @@ LEGEND = {0: "cold start",
 epochs = 100
 
 mode = "square"
-
-
-def average_data(data):
-    tmp = []
-    data_epoch = []
-    for i, value in enumerate(data):
-        tmp.append(value)
-        if i % epochs == 0:
-            a = np.asarray(tmp)
-            data_epoch.append(a.mean())
-            tmp = []
-    return data_epoch
-
-def calculate_limits(down_limit, up_limit, data_avg_epoch, data_std_epoch):
-    up_shift = np.array(
-        [value if value <= up_limit else up_limit for value in list(data_avg_epoch + data_std_epoch)])
-    down_shift = np.array(
-        [value if value >= down_limit else down_limit for value in list(data_avg_epoch - data_std_epoch)])
-    return down_shift, up_shift
 
 
 for name in DATA_NAMES:
@@ -143,5 +126,5 @@ for name in DATA_NAMES:
     fig.supylabel(AXIS_LABELS[name])
     plt.legend()
 
-    plt.savefig(os.path.join(OUTPUT_DIR, f"guidance_error_comparison_{name}_mode_{mode}.pdf"),
+    plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"guidance_error_comparison_{name}_mode_{mode}.pdf"),
                 bbox_inches='tight')

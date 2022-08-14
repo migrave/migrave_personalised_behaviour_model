@@ -33,24 +33,11 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-#plt.rcParams["figure.figsize"] = [7.50, 3.50]
-#splt.rcParams["figure.autolayout"] = True
-
 USERS = [0, 1]
-
+ROOT_PATH = "behaviour_model"
 DATA_ROOT = "results"
 OUTPUT_DIR = "update_comparison"
-
-
-
-# DATA_DIRECTS = {1: f"u{USER}_m1_policy-softmax_pretrained-False",
-#                 0: f"u{USER}_m0_policy-softmax_pretrained-False"}
-
 PRETRAINED_USER = 0
-# For user pretrained policy for
-# DATA_DIRECTS = {2: f"u{USER}_m2_policy-exploitation_pretrained-u{PRETRAINED_USER}_m2_policy-softmax_pretrained-False",
-#                 1: f"u{USER}_m1_policy-exploitation_pretrained-u{PRETRAINED_USER}_m1_policy-softmax_pretrained-False",
-#                 0: f"u{USER}_m0_policy-exploitation_pretrained-u{PRETRAINED_USER}_m0_policy-softmax_pretrained-False"}
 
 DATA_NAMES = ["score", "ratio", "engagement"]
 AXIS_LABELS = {"score": "Performance score",
@@ -120,5 +107,5 @@ for name in DATA_NAMES:
     fig.supylabel(AXIS_LABELS[name])
     plt.legend()
 
-    plt.savefig(os.path.join(OUTPUT_DIR, f"update_comparison_{name}.pdf"),
+    plt.savefig(os.path.join(ROOT_PATH, OUTPUT_DIR, f"update_comparison_{name}.pdf"),
                 bbox_inches='tight')

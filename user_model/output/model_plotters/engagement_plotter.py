@@ -68,9 +68,9 @@ for user_id, ax in zip(USERS_ID, axes):
     stds_succ = []
     stds_failure = []
 
-    training_data = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_feedback_training.json"))
-    predict_data_std = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_feedback_std.json"))
-    predict_data = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_feedback.json"))
+    training_data = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_engagement_training.json"))
+    predict_data_std = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_engagement_std.json"))
+    predict_data = load_model(os.path.join(MODEL_DIRECTORY, f"user{user_id}_engagement.json"))
 
     state_level = [0, 21, 42]
     state_level_nums = [21, 21, 21]

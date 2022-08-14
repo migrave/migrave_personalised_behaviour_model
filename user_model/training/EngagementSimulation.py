@@ -22,9 +22,9 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
 
-from simulation.user_model.simulation_utils import normalize_with_moments, get_moments, grid_search
-from simulation.user_model.simulation import Simulation
-from simulation.user_model.models import FeedbackNN
+from user_model.training.simulation_utils import normalize_with_moments, get_moments, grid_search
+from user_model.training.Simulation import Simulation
+from user_model.training.models import EngagementNN
 
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -34,7 +34,7 @@ from sklearn import metrics
 import json
 
 
-class FeedbackSimulation(Simulation):
+class EngagementSimulation(Simulation):
     def __init__(self, data):
         super().__init__(data)
         self.a0 = self.P0.groupby(['length', 'robot_feedback', 'previous_score', 'current_result'])
@@ -58,7 +58,7 @@ class FeedbackSimulation(Simulation):
                                 "model": model,
                                 "cluster": cluster})
             if model_name == 'nn':
-                model.save('simulation/output/model/user' + str(ii) + '_feedback.h5', 'wb')
+                model.save('user_model/output/model/user' + str(ii) + '_engagement.h5', 'wb')
             print(f"Trained cluster no {ii}")
 
     def eval(self, if_save=True):
@@ -114,13 +114,12 @@ class FeedbackSimulation(Simulation):
         x_train = normalize_with_moments(x)
 
         if model_name == "nn":
-            model = FeedbackNN()
+            model = EngagementNN()
             history = model.fit(x_train, y, epochs=10000, batch_size=8, verbose=0)
             plt.plot(history.history['loss'])
-            plt.title('model accuracy')
-            plt.ylabel('accuracy')
-            plt.xlabel('epoch')
-            plt.legend(['train', 'test'], loc='upper left')
+            plt.title('Model loss')
+            plt.ylabel('Loss')
+            plt.xlabel('Epoch')
             plt.show()
         elif model_name == "gp":
             kernel = RationalQuadratic(length_scale=1.0, alpha=1.5, length_scale_bounds=(1e-5, 1e5), alpha_bounds=(1e-5, 1e5))
@@ -274,14 +273,14 @@ class FeedbackSimulation(Simulation):
         plt.xlabel("State id")
         plt.ylabel("Engagement level")
         plt.title(f"Engagement plot for user cluster {id}")
-        plt.savefig(f"simulation/output/graphics/feedback_c{id}.pdf")
+        plt.savefig(f"user_model/output/graphics/engagement_c{id}.pdf")
         plt.close()
 
         if if_save:
-            with open(f"simulation/output/model/user{id}_feedback.json", "w") as model_json:
+            with open(f"user_model/output/model/user{id}_engagement.json", "w") as model_json:
                 json.dump(model_dict, model_json)
-            with open(f"simulation/output/model/user{id}_feedback_training.json", "w") as model_json:
+            with open(f"user_model/output/model/user{id}_engagement_training.json", "w") as model_json:
                 json.dump(training_dict, model_json)
             if model_name == "gp":
-                with open(f"simulation/output/model/user{id}_feedback_std.json", "w") as model_json:
+                with open(f"user_model/output/model/user{id}_engagement_std.json", "w") as model_json:
                     json.dump(model_dict_std, model_json)

@@ -30,7 +30,7 @@ def PerformanceNN():
     return model
 
 
-def FeedbackNN():
+def EngagementNN():
     model = Sequential()
     model.add(Dense(20, input_dim=6, activation='tanh'))
     model.add(Dense(10, activation='tanh'))

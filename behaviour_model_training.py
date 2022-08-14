@@ -23,7 +23,7 @@ from behaviour_model_params import get_params
 
 params = get_params()
 user_id = params[2]
-engagement_model_path = f"user_model/output/model/user{user_id}_feedback.json"
+engagement_model_path = f"user_model/output/model/user{user_id}_engagement.json"
 performance_model_path = f"user_model/output/model/user{user_id}_performance.json"
 
 behaviour_model = BehaviourModel(performance_model_path, engagement_model_path, params)

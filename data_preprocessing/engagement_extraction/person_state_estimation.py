@@ -1,5 +1,9 @@
-import os
+'''
+    This file is part of migrave_personalised_behaviour_model, the original source code can be found under:
+    https://github.com/migrave/migrave_person_state_estimation.
+'''
 
+import os
 import joblib
 import numpy as np
 from utils import standardize_data
@@ -14,12 +18,6 @@ class PersonStateEstimation(object):
         self._engagement_cls = 0
         self._engagement_mea = 0
         self._engagement_std = 0
-        #if "engagement" in self._config:
-        #    cls_path = os.path.join(pkg_dir,
-        #                            "models",
-        #                            self._config["engagement"]["model_file"])
-
-        #    self._engagement_cls, self._engagement_mean, self._engagement_std = self.load_classifier(cls_path)
 
     def load_classifier(self, cls_path):
         with open(cls_path, 'rb') as f:

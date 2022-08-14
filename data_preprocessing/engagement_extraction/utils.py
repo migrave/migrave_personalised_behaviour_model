@@ -1,3 +1,8 @@
+'''
+    This file is part of migrave_personalised_behaviour_model, the original source code can be found under:
+    https://github.com/interaction-lab/exp_engagement/tree/master/Models.
+'''
+
 from typing import Dict, Tuple
 import os
 

@@ -28,7 +28,10 @@ pandas == 1.4.1
 ```
 
 ### Usage
-* To preprocess the data use the jupyter notebooks available in `data_preprocessing`
+* To preprocess the data use the jupyter notebooks available in `data_preprocessing`: 
+  * To extract expected engagement please use `engagement_extraction/extractor.ipynb`
+  * To merge game performance and engagement data (obtained from the previous step) please use `final/merger.ipynb`
+  * To cluster the users based on the merged game performance and engagement data (obtained in the previous step) please use `clustering/clustering.ipynb`. Bear in mind, that the output of this script should be used for training the user models.
 * To run training of the user models:
   
   ```

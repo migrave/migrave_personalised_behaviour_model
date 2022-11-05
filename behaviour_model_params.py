@@ -32,7 +32,7 @@ RUNS_NUMBER = 30 # How many times the training should be run
 UPDATE_MODE = 1 # reward is calculated only with:
                 # update_mode=0 - performance score,
                 # update_mode=1 - performance score + engagement,
-                # update_mode=2 - engagement Q augmentation
+                # update_mode=2 - engagement
 LEARNING = True # if Q-table should be updated
 EXPLORATION_POLICY = "softmax" # Method for choosing actions i.e. exploration policy:
                                 # "softmax", "egreedy", "exploitation" (no exploration)
@@ -44,8 +44,8 @@ EXPLORATION_INIT_PARAM = 300 # Initial parameter for exploration,
                             # e.g. for softmax exploration it is initial temperature
 LEARNING_RATE = 0.05
 DISCOUNT_FACTOR = 0.95
-BETA1 = 3 # For shaping the influence of game performance in the reward calculation
-BETA2 = 3 # For shaping the influence of engagement in the reward calculation
+BETA1 = 3 # For shaping the influence of engagement in the reward calculation (performance score + beta1*engagement)
+BETA2 = 3 # For shaping the influence of engagement in the reward calculation (beta2*engagement)
 
 GUIDANCE = False # If learning from guidance is used
 P_GUIDANCE_MISTAKES = 0.2 # Probability of the supervisor to make a mistake
